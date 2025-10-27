@@ -1,3 +1,4 @@
+/* ================= Config ================= */
 const DB_NAME='perfumeShop_auth_reviews_v1';
 const DB_VERSION=1;
 const DEFAULT_AVATAR='https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Profile_avatar_placeholder_large.png/240px-Profile_avatar_placeholder_large.png';
@@ -5,7 +6,7 @@ const DEFAULT_PRODUCT='https://upload.wikimedia.org/wikipedia/commons/thumb/8/87
 
 let db;
 
-
+/* ================= IndexedDB ================= */
 function openDB(){
   return new Promise((resolve,reject)=>{
     const req=indexedDB.open(DB_NAME,DB_VERSION);
@@ -15,7 +16,7 @@ function openDB(){
       if(!db.objectStoreNames.contains('orders')) db.createObjectStore('orders',{keyPath:'id',autoIncrement:true});
       if(!db.objectStoreNames.contains('products')) db.createObjectStore('products',{keyPath:'id',autoIncrement:true});
       if(!db.objectStoreNames.contains('reviews')) db.createObjectStore('reviews',{keyPath:'id',autoIncrement:true});
-      if(!db.objectStoreNames.contains('users')) db.createObjectStore('users',{keyPath:'id',autoIncrement:true}); // auth demo
+      if(!db.objectStoreNames.contains('users')) db.createObjectStore('users',{keyPath:'id',autoIncrement:true});
     };
     req.onsuccess=()=>{db=req.result;resolve(db)};
     req.onerror=()=>reject(req.error);
@@ -23,11 +24,12 @@ function openDB(){
 }
 function store(n,m='readonly'){return db.transaction(n,m).objectStore(n)}
 function add(n,v){return new Promise((r,j)=>{const x=store(n,'readwrite').add(v);x.onsuccess=()=>r(x.result);x.onerror=()=>j(x.error);})}
+function put(n,v){return new Promise((r,j)=>{const x=store(n,'readwrite').put(v);x.onsuccess=()=>r(x.result);x.onerror=()=>j(x.error);})}
 function all(n){return new Promise(r=>{const out=[];store(n).openCursor().onsuccess=e=>{const c=e.target.result;if(c){out.push(c.value);c.continue();}else r(out)}})}
 function clearStore(n){return new Promise(r=>store(n,'readwrite').clear().onsuccess=()=>r())}
 function remove(n,id){return new Promise(r=>store(n,'readwrite').delete(id).onsuccess=()=>r())}
 
-
+/* ================= Utilidades ================= */
 const $=s=>document.querySelector(s);
 function fileToDataURL(file){
   return new Promise((resolve,reject)=>{
@@ -37,28 +39,13 @@ function fileToDataURL(file){
     fr.readAsDataURL(file);
   });
 }
+const looksLikeId = (v) => /^\d+$/.test(String(v || '').trim());
 
-                        
-const SAMPLE_CLIENTS=[
-  {nombre:'Carla Robles',ci:'7392012',genero:'Femenino',foto:''},
-  {nombre:'Luis Pérez',ci:'5849230',genero:'Masculino',foto:''},
-  {nombre:'Ana Gómez',ci:'6123498',genero:'Femenino',foto:''}
-];
-const SAMPLE_PRODUCTS=[
- 
-  {nombre:"J'adore",marca:"Dior",precio:950,img:''},
-  {nombre:"Bleu de Chanel",marca:"Chanel",precio:1100,img:''},
-  {nombre:"Acqua di Gio",marca:"Giorgio Armani",precio:990,img:''},
-];
-const SAMPLE_REVIEWS=[
-  {nombre:'Carla Robles',texto:'Aroma duradero y elegante. Envío rápido.',rating:5},
-  {nombre:'Luis Pérez',texto:'Buen precio y atención.',rating:4},
-];
-const SAMPLE_ORDERS=[
-  {cliente:'Carla Robles',producto:"J'adore",cantidad:1},
-  {cliente:'Luis Pérez',producto:'Bleu de Chanel',cantidad:2},
-];
-
+/* ================= Semillas (vacías para que tú cargues desde el dispositivo) ================= */
+const SAMPLE_CLIENTS=[];
+const SAMPLE_PRODUCTS=[];
+const SAMPLE_REVIEWS=[];
+const SAMPLE_ORDERS=[];
 async function seed(){
   if((await all('clients')).length===0) for(const c of SAMPLE_CLIENTS) await add('clients',c);
   if((await all('products')).length===0) for(const p of SAMPLE_PRODUCTS) await add('products',p);
@@ -66,10 +53,12 @@ async function seed(){
   if((await all('orders')).length===0) for(const o of SAMPLE_ORDERS) await add('orders',o);
 }
 
+/* ================= Helpers ================= */
 async function getProductByName(name){ const prods=await all('products'); return prods.find(p=>p.nombre===name); }
-async function getClientByName(name){ const cl=await all('clients'); return cl.find(c=>c.nombre===name); }
+async function getClientByName(name){ const cl=await all('clients'); return cl.find(c=>c.nombre?.trim()===name?.trim()); }
+async function getClientById(id){ const cl=await all('clients'); return cl.find(c=>String(c.id)===String(id)); }
 
-
+/* ================= Auth (demo local) ================= */
 function setSession(user){ localStorage.setItem('ps_current_user', JSON.stringify(user)); repaintAuth(); }
 function getSession(){ const raw=localStorage.getItem('ps_current_user'); return raw? JSON.parse(raw): null; }
 function clearSession(){ localStorage.removeItem('ps_current_user'); repaintAuth(); }
@@ -79,7 +68,7 @@ async function doRegister(){
   if(!name||!email||!pass) return alert('Completa nombre, email y contraseña');
   const users=await all('users');
   if(users.some(u=>u.email===email)) return alert('Ese email ya está registrado');
-  const id=await add('users',{name,email,pass}); 
+  const id=await add('users',{name,email,pass});
   closeModal('#modalRegister');
   setSession({id,name,email});
 }
@@ -102,6 +91,8 @@ function repaintAuth(){
     btnLogin.style.display='inline-block'; btnReg.style.display='inline-block'; btnOut.style.display='none';
   }
 }
+
+/* ================= Modales ================= */
 function openModal(sel){ const m=$(sel); if(m) m.setAttribute('aria-hidden','false'); }
 function closeModal(sel){ const m=$(sel); if(m) m.setAttribute('aria-hidden','true'); }
 document.addEventListener('click',(e)=>{
@@ -110,6 +101,7 @@ document.addEventListener('click',(e)=>{
   if(e.target.classList?.contains('modal')) e.target.setAttribute('aria-hidden','true');
 });
 
+/* ================= Render ================= */
 async function renderClientes(){
   const data=await all('clients');
   $('#countClientes').textContent=data.length;
@@ -133,53 +125,91 @@ async function renderClientes(){
 }
 
 async function renderPedidos(){
-  const data=await all('orders');
-  $('#countPedidos').textContent=data.length;
-  const mini=$('#listaPedidosMini'), full=$('#listaPedidos');
-  if(mini) mini.innerHTML=''; if(full) full.innerHTML='';
+  const data = await all('orders');
+  $('#countPedidos').textContent = data.length;
 
-  for(const o of data.slice(-20).reverse()){
-    const p=await getProductByName(o.producto);
-    const totalTxt=p?` · Total Bs. ${o.cantidad * (p.precio||0)}`:'';
-    const rowHTML=`
-      <div class="ph"></div>
-      <div class="body">
-        <strong>${o.producto}</strong> <span class="small">x${o.cantidad}${totalTxt}</span>
-        <div class="small">Cliente: ${o.cliente}</div>
+  const mini = $('#listaPedidosMini');
+  const full = $('#listaPedidos');
+  if (mini) mini.innerHTML = '';
+  if (full) full.innerHTML = '';
+
+  for (const o of data.slice(-20).reverse()) {
+    const p = await getProductByName(o.producto);
+    const c = await getClientByName(o.cliente);
+
+    const prodImg = (p && p.img && p.img.trim()) ? p.img : DEFAULT_PRODUCT;
+    const cliImg  = (c && c.foto && c.foto.trim()) ? c.foto : DEFAULT_AVATAR;
+    const totalTxt = p ? ` · Total Bs. ${o.cantidad * (p.precio || 0)}` : '';
+
+    const rowHTML = `
+      <div class="ph">
+        <img src="${prodImg}" alt="${o.producto}"
+             onerror="this.onerror=null;this.src='${DEFAULT_PRODUCT}';">
       </div>
-      <div class="actions"><button class="btn" data-del>Eliminar</button></div>`;
+      <div class="body">
+        <strong>${o.producto}</strong>
+        <span class="small">x${o.cantidad}${totalTxt}</span>
+        <div class="small" style="display:flex;align-items:center;gap:6px;margin-top:4px">
+          <img src="${cliImg}" alt="${o.cliente}"
+               style="width:20px;height:20px;border-radius:50%;object-fit:cover"
+               onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';">
+          <span>Cliente: ${o.cliente}</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" data-del>Eliminar</button>
+      </div>`;
 
-    if(full){
-      const r1=document.createElement('div'); r1.className='item'; r1.innerHTML=rowHTML;
-      r1.querySelector('[data-del]').onclick=async()=>{await remove('orders',o.id);renderPedidos();};
+    if (full) {
+      const r1 = document.createElement('div');
+      r1.className = 'item';
+      r1.innerHTML = rowHTML;
+      r1.querySelector('[data-del]').onclick = async () => { await remove('orders', o.id); renderPedidos(); };
       full.appendChild(r1);
     }
-    if(mini){
-      const r2=document.createElement('div'); r2.className='item'; r2.innerHTML=rowHTML;
-      r2.querySelector('[data-del]').onclick=async()=>{await remove('orders',o.id);renderPedidos();};
+    if (mini) {
+      const r2 = document.createElement('div');
+      r2.className = 'item';
+      r2.innerHTML = rowHTML;
+      r2.querySelector('[data-del]').onclick = async () => { await remove('orders', o.id); renderPedidos(); };
       mini.appendChild(r2);
     }
   }
 }
 
 async function renderReviews(){
-  const data=await all('reviews');
-  const r=$('#reviewsRow'); r.innerHTML='';
-  for(const rv of data.slice(-12).reverse()){
-    const c = await getClientByName(rv.nombre);
-    if(c && c.foto) avatar = c.foto;
-    const card=document.createElement('div');
-    card.className='review';
-    card.innerHTML=`
-      <div class="stars">${'★'.repeat(rv.rating)}${'☆'.repeat(5-rv.rating)}</div>
+  const data = await all('reviews');
+  const wrap = $('#reviewsRow');
+  wrap.innerHTML = '';
+
+  for (const rv of data.slice().reverse()) {
+    let avatar = DEFAULT_AVATAR;
+
+    // 1) si tiene clientId, intentamos por id
+    if (rv.clientId) {
+      const c = await getClientById(rv.clientId);
+      if (c && c.foto && String(c.foto).trim()) avatar = c.foto;
+      else if (rv.avatar && String(rv.avatar).trim()) avatar = rv.avatar;
+    } else {
+      // 2) fallback por nombre
+      const c = await getClientByName(rv.nombre);
+      if (c && c.foto && String(c.foto).trim()) avatar = c.foto;
+      else if (rv.avatar && String(rv.avatar).trim()) avatar = rv.avatar;
+    }
+
+    const card = document.createElement('div');
+    card.className = 'review';
+    card.innerHTML = `
+      <div class="stars">${'★'.repeat(rv.rating)}${'☆'.repeat(5 - rv.rating)}</div>
       <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
         <div class="ph" style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex:0 0 32px">
-          <img src="${avatar}" alt="${rv.nombre}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';">
+          <img src="${avatar}" alt="${rv.nombre}"
+               onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';">
         </div>
         <div style="font-weight:600">${rv.nombre}</div>
       </div>
       <div class="muted" style="margin-top:6px">${rv.texto}</div>`;
-    r.appendChild(card);
+    wrap.appendChild(card);
   }
 }
 
@@ -209,6 +239,7 @@ async function renderDestacados(){
   });
 }
 
+/* ================= Selects ================= */
 async function fillProductoSelect(){
   const prods=await all('products');
   $('#oProducto').innerHTML='<option value="">Producto</option>'+prods.map(p=>`<option value="${p.nombre}">${p.nombre} — Bs. ${p.precio||0}</option>`).join('');
@@ -219,17 +250,18 @@ async function fillClienteSelect(){
 }
 async function fillReviewClients(){
   const clients=await all('clients');
-  $('#rCliente').innerHTML='<option value="">Elige cliente</option>'+clients.map(c=>`<option>${c.nombre}</option>`).join('');
+  // Ideal: usar ID como value, pero soportaremos ambos en addReview.
+  $('#rCliente').innerHTML='<option value="">Elige cliente</option>'+clients.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
 }
 
-
+/* ================= Eventos ================= */
+// CLIENTES (con subida de foto desde dispositivo)
 $('#addCliente').onclick=async()=>{
   const nombre=$('#cNombre').value.trim();
   const ci=$('#cCi').value.trim();
   const genero=$('#cGenero').value;
   const fileInput=$('#cFotoFile');
   if(!nombre||!ci){alert('Completa nombre y CI');return;}
-
 
   let fotoFinal = '';
   if(fileInput.files && fileInput.files[0]){
@@ -240,10 +272,11 @@ $('#addCliente').onclick=async()=>{
   await renderClientes();
 };
 
-
-$('#resetClientes').onclick=async()=>{ await clearStore('clients'); await renderClientes(); };
+// BORRAR CLIENTES / PEDIDOS
+$('#resetClientes').onclick=async()=>{ await clearStore('clients'); await renderClientes(); await fillReviewClients(); };
 $('#resetPedidos').onclick=async()=>{ await clearStore('orders'); await renderPedidos(); };
 
+// PEDIDOS
 $('#addPedido').onclick=async()=>{
   const cliente=$('#oClienteSel').value;
   const producto=$('#oProducto').value;
@@ -254,46 +287,87 @@ $('#addPedido').onclick=async()=>{
   renderPedidos();
 };
 
-$('#addReview').onclick=async()=>{
-  const nombre=$('#rCliente').value;
-  const rating=parseInt($('#rRating').value,10);
-  const texto=$('#rTexto').value.trim();
-  if(!nombre||!texto){alert('Selecciona cliente y escribe la reseña');return;}
-  await add('reviews',{nombre,texto,rating});
-  $('#rCliente').value=''; $('#rTexto').value='';
+// RESEÑAS (acepta id o nombre, y guarda avatar)
+$('#addReview').onclick = async () => {
+  const val    = $('#rCliente').value;           // puede ser ID (ideal) o nombre (fallback)
+  const rating = parseInt($('#rRating').value, 10);
+  const texto  = $('#rTexto').value.trim();
+  if (!val || !texto){ alert('Selecciona cliente y escribe la reseña'); return; }
+
+  let cliente = null;
+  if (looksLikeId(val)) {
+    cliente = await getClientById(val);
+  } else {
+    cliente = await getClientByName(val);
+  }
+  if (!cliente){ alert('Cliente no encontrado'); return; }
+
+  const nombre = cliente.nombre;
+  const avatar = (cliente.foto && String(cliente.foto).trim()) ? cliente.foto : DEFAULT_AVATAR;
+
+  await add('reviews', { clientId: cliente.id, nombre, texto, rating, avatar });
+
+  $('#rCliente').value = '';
+  $('#rTexto').value   = '';
   renderReviews();
 };
 
+// PRODUCTOS (admin: con subida de foto desde dispositivo)
+$('#addProducto').onclick = async () => {
+  const nombre = $('#pNombre').value.trim();
+  const marca  = $('#pMarca').value.trim();
+  const precio = parseFloat($('#pPrecio').value || '0');
+  const file   = $('#pImgFile').files?.[0];
+  if (!nombre || !marca || !precio) { alert('Completa nombre, marca y precio'); return; }
 
-$('#addProducto').onclick=async()=>{
-  const nombre=$('#pNombre').value.trim();
-  const marca=$('#pMarca').value.trim();
-  const precio=parseFloat($('#pPrecio').value||'0');
-  const file=$('#pImgFile').files?.[0];
-  if(!nombre||!marca||!precio){alert('Completa nombre, marca y precio');return;}
-  let img='';
-  if(file){
-    img = await fileToDataURL(file);
-  }
-  await add('products',{nombre,marca,precio,img});
+  let img = '';
+  if (file) img = await fileToDataURL(file);
+  await add('products', { nombre, marca, precio, img });
+
   $('#pNombre').value=''; $('#pMarca').value=''; $('#pPrecio').value=''; $('#pImgFile').value='';
   await fillProductoSelect();
   await renderDestacados();
 };
 
+/* AUTH UI HOOKS */
 $('#btnLogin').onclick=()=>openModal('#modalLogin');
 $('#btnRegister').onclick=()=>openModal('#modalRegister');
 $('#btnLogout').onclick=()=>clearSession();
 $('#doRegister').onclick=()=>doRegister();
 $('#doLogin').onclick=()=>doLogin();
 
+/* ================= Init ================= */
 (async()=>{
   await openDB();
   await seed();
   await fillProductoSelect();
   await renderClientes();
+  await fillReviewClients();   // <-- clave: asegura el select de reseñas
   await renderPedidos();
   await renderReviews();
   await renderDestacados();
   repaintAuth();
 })();
+
+/* ================= Botones de borrado ================= */
+// SOLO PRODUCTOS
+$('#wipeProducts').onclick = async () => {
+  if (!confirm('¿Seguro que quieres eliminar TODOS los productos? Esta acción no se puede deshacer.')) return;
+  await clearStore('products');
+  await fillProductoSelect();
+  await renderDestacados();
+  alert('Productos eliminados.');
+};
+
+// (Opcional) Vaciar toda la base
+const btnWipe = document.createElement('button');
+btnWipe.textContent = '🧹 Vaciar Base de Datos';
+btnWipe.className = 'btn';
+btnWipe.style.marginTop = '10px';
+btnWipe.onclick = () => {
+  if (confirm('¿Seguro que quieres eliminar toda la base de datos? Esta acción no se puede deshacer.')) {
+    indexedDB.deleteDatabase(DB_NAME);
+    alert('Base de datos eliminada. Recarga la página para iniciar de nuevo.');
+  }
+};
+document.querySelector('footer').appendChild(btnWipe);
