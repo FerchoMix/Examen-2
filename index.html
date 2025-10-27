@@ -7,8 +7,6 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-  <!-- TOPBAR -->
   <nav class="topbar">
     <div class="topbar-inner">
       <div class="brand"><i>🅿︎</i> PerfumeShop</div>
@@ -30,10 +28,7 @@
 
   <div class="container">
     <h2>PerfumeShop</h2>
-
-    <!-- FILA: Clientes | Pedidos -->
     <section class="row">
-      <!-- CLIENTES -->
       <div class="card" id="clientes">
         <h3>Clientes</h3>
         <div class="field"><input id="cNombre" placeholder="Nombre"/></div>
@@ -45,10 +40,7 @@
             <option>Masculino</option>
             <option>Otro</option>
           </select>
-
-          <!-- 🔻🔻🔻 AQUÍ SUBES FOTO DE CLIENTE DESDE EL DISPOSITIVO 🔻🔻🔻 -->
           <input id="cFotoFile" type="file" accept="image/*" style="flex:1">
-          <!-- La imagen se guarda como Data URL en IndexedDB -->
         </div>
         <div class="field" style="justify-content:flex-end">
           <button class="btn primary" id="addCliente">Registrar</button>
@@ -58,7 +50,6 @@
         <div id="listaClientes" class="list" style="margin-top:8px"></div>
       </div>
 
-      <!-- PEDIDOS -->
       <div class="card" id="pedidos">
         <h3>Pedidos</h3>
         <div class="field">
@@ -77,11 +68,9 @@
       </div>
     </section>
 
-    <!-- Reseñas -->
     <section class="section" id="reviews">
       <h3>Últimas reseñas</h3>
 
-      <!-- FORM NUEVA RESEÑA -->
       <div class="card" style="margin-bottom:14px">
         <div class="field">
           <select id="rCliente"><option value="">Elige cliente</option></select>
@@ -104,7 +93,6 @@
       <div id="reviewsRow" class="reviews"></div>
     </section>
 
-    <!-- Hero con foto -->
     <section class="hero">
       <div class="thumb">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Perfume_bottles.jpg/1024px-Perfume_bottles.jpg" alt="Perfumes"/>
@@ -115,23 +103,20 @@
       </div>
     </section>
 
-    <!-- Recomendados -->
     <section class="section">
       <div class="heading">Recomendados</div>
       <div class="small">Seleccionados por nuestros perfumistas</div>
       <div id="destacados" class="list" style="margin-top:12px"></div>
     </section>
 
-    <!-- Admin de Productos (ligero) -->
     <section class="section">
       <div class="card">
         <h3>Productos (admin)</h3>
         <div class="field"><input id="pNombre" placeholder="Nombre del producto"></div>
         <div class="field"><input id="pMarca" placeholder="Marca"><input id="pPrecio" type="number" min="0" placeholder="Precio (Bs)"></div>
         <div class="field">
-          <!-- 🔻🔻🔻 AQUÍ SUBES FOTO DE PRODUCTO DESDE EL DISPOSITIVO 🔻🔻🔻 -->
+
           <input id="pImgFile" type="file" accept="image/*" style="flex:1">
-          <!-- Se guarda como Data URL y se usará en Recomendados / Select -->
         </div>
         <div class="field" style="justify-content:flex-end">
           <button class="btn primary" id="addProducto">Añadir producto</button>
@@ -140,7 +125,6 @@
     </section>
   </div>
 
-  <!-- FOOTER -->
   <footer id="contacto">
     <div class="container footgrid">
       <div class="footcol">
@@ -165,7 +149,6 @@
     </div>
   </footer>
 
-  <!-- MODALES AUTH -->
   <div class="modal" id="modalLogin" aria-hidden="true">
     <div class="modal-dialog">
       <h3>Iniciar sesión</h3>
