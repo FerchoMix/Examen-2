@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PerfumeShop</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <nav class="topbar">
+    <div class="topbar-inner">
+      <div class="brand"><i>🅿︎</i> PerfumeShop</div>
+      <div class="menu">
+        <a href="#clientes">Clientes</a>
+        <a href="#pedidos">Pedidos</a>
+        <a href="#reviews">Reseñas</a>
+        <a href="#destacados">Recomendados</a>
+        <a href="#contacto">Contacto</a>
+      </div>
+      <div class="auth-ctas">
+        <span id="helloUser" class="muted" style="display:none"></span>
+        <button class="btn" id="btnLogin">Iniciar sesión</button>
+        <button class="btn primary" id="btnRegister">Registrarse</button>
+        <button class="btn" id="btnLogout" style="display:none">Salir</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h2>PerfumeShop</h2>
+
+    <!-- FILA: Clientes | Pedidos -->
+    <section class="row">
+      <!-- CLIENTES -->
+      <div class="card" id="clientes">
+        <h3>Clientes</h3>
+        <div class="field"><input id="cNombre" placeholder="Nombre"/></div>
+        <div class="field"><input id="cCi" placeholder="CI"/></div>
+        <div class="field">
+          <select id="cGenero">
+            <option value="">Género</option>
+            <option>Femenino</option>
+            <option>Masculino</option>
+            <option>Otro</option>
+          </select>
+
+          <!-- 🔻🔻🔻 AQUÍ SUBES FOTO DE CLIENTE DESDE EL DISPOSITIVO 🔻🔻🔻 -->
+          <input id="cFotoFile" type="file" accept="image/*" style="flex:1">
+          <!-- La imagen se guarda como Data URL en IndexedDB -->
+        </div>
+        <div class="field" style="justify-content:flex-end">
+          <button class="btn primary" id="addCliente">Registrar</button>
+          <button class="btn" id="resetClientes">Borrar todo</button>
+        </div>
+        <div class="small">Total: <span id="countClientes">0</span></div>
+        <div id="listaClientes" class="list" style="margin-top:8px"></div>
+      </div>
+
+      <!-- PEDIDOS -->
+      <div class="card" id="pedidos">
+        <h3>Pedidos</h3>
+        <div class="field">
+          <select id="oClienteSel"><option value="">Selecciona cliente</option></select>
+        </div>
+        <div class="field">
+          <select id="oProducto"><option value="">Producto</option></select>
+          <input id="oCantidad" type="number" min="1" value="1" style="max-width:120px">
+        </div>
+        <div class="field" style="justify-content:flex-end">
+          <button class="btn primary" id="addPedido">Añadir</button>
+          <button class="btn" id="resetPedidos">Borrar todo</button>
+        </div>
+        <div class="small">Total: <span id="countPedidos">0</span></div>
+        <div id="listaPedidosMini" class="list" style="margin-top:8px"></div>
+      </div>
+    </section>
+
+    <!-- Reseñas -->
+    <section class="section" id="reviews">
+      <h3>Últimas reseñas</h3>
+
+      <!-- FORM NUEVA RESEÑA -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="field">
+          <select id="rCliente"><option value="">Elige cliente</option></select>
+          <select id="rRating">
+            <option value="5">★★★★★ (5)</option>
+            <option value="4">★★★★☆ (4)</option>
+            <option value="3">★★★☆☆ (3)</option>
+            <option value="2">★★☆☆☆ (2)</option>
+            <option value="1">★☆☆☆☆ (1)</option>
+          </select>
+        </div>
+        <div class="field">
+          <input id="rTexto" placeholder="Escribe tu opinión..." />
+        </div>
+        <div class="field" style="justify-content:flex-end">
+          <button class="btn primary" id="addReview">Publicar reseña</button>
+        </div>
+      </div>
+
+      <div id="reviewsRow" class="reviews"></div>
+    </section>
+
+    <!-- Hero con foto -->
+    <section class="hero">
+      <div class="thumb">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Perfume_bottles.jpg/1024px-Perfume_bottles.jpg" alt="Perfumes"/>
+      </div>
+      <div style="flex:2">
+        <h3>Lista de pedidos</h3>
+        <div id="listaPedidos" class="list" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <!-- Recomendados -->
+    <section class="section">
+      <div class="heading">Recomendados</div>
+      <div class="small">Seleccionados por nuestros perfumistas</div>
+      <div id="destacados" class="list" style="margin-top:12px"></div>
+    </section>
+
+    <!-- Admin de Productos (ligero) -->
+    <section class="section">
+      <div class="card">
+        <h3>Productos (admin)</h3>
+        <div class="field"><input id="pNombre" placeholder="Nombre del producto"></div>
+        <div class="field"><input id="pMarca" placeholder="Marca"><input id="pPrecio" type="number" min="0" placeholder="Precio (Bs)"></div>
+        <div class="field">
+          <!-- 🔻🔻🔻 AQUÍ SUBES FOTO DE PRODUCTO DESDE EL DISPOSITIVO 🔻🔻🔻 -->
+          <input id="pImgFile" type="file" accept="image/*" style="flex:1">
+          <!-- Se guarda como Data URL y se usará en Recomendados / Select -->
+        </div>
+        <div class="field" style="justify-content:flex-end">
+          <button class="btn primary" id="addProducto">Añadir producto</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- FOOTER -->
+  <footer id="contacto">
+    <div class="container footgrid">
+      <div class="footcol">
+        <h5>PerfumeShop</h5>
+        <p class="small">Fragancias originales y envíos en 24–48h. Santa Cruz · La Paz · Cochabamba.</p>
+      </div>
+      <div class="footcol">
+        <h5>Explora</h5>
+        <ul>
+          <li><a href="#pedidos">Catálogo</a></li>
+          <li><a href="#reviews">Opiniones</a></li>
+          <li><a href="#contacto">Soporte</a></li>
+        </ul>
+      </div>
+      <div class="footcol">
+        <h5>Recursos</h5>
+        <ul>
+          <li>WhatsApp: +591 70000000</li>
+          <li>Email: hola@perfume.shop</li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MODALES AUTH -->
+  <div class="modal" id="modalLogin" aria-hidden="true">
+    <div class="modal-dialog">
+      <h3>Iniciar sesión</h3>
+      <div class="field"><input id="loginEmail" placeholder="Email"></div>
+      <div class="field"><input id="loginPass" type="password" placeholder="Contraseña"></div>
+      <div class="modal-actions">
+        <button class="btn" data-close="#modalLogin">Cancelar</button>
+        <button class="btn primary" id="doLogin">Entrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modalRegister" aria-hidden="true">
+    <div class="modal-dialog">
+      <h3>Registrarse</h3>
+      <div class="field"><input id="regName" placeholder="Nombre"></div>
+      <div class="field"><input id="regEmail" placeholder="Email"></div>
+      <div class="field"><input id="regPass" type="password" placeholder="Contraseña"></div>
+      <div class="modal-actions">
+        <button class="btn" data-close="#modalRegister">Cancelar</button>
+        <button class="btn primary" id="doRegister">Crear cuenta</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
