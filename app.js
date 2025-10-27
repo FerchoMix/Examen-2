@@ -1,4 +1,3 @@
-/* ================= Config ================= */
 const DB_NAME='perfumeShop_auth_reviews_v1';
 const DB_VERSION=1;
 const DEFAULT_AVATAR='https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Profile_avatar_placeholder_large.png/240px-Profile_avatar_placeholder_large.png';
@@ -6,7 +5,7 @@ const DEFAULT_PRODUCT='https://upload.wikimedia.org/wikipedia/commons/thumb/8/87
 
 let db;
 
-/* ================= IndexedDB ================= */
+
 function openDB(){
   return new Promise((resolve,reject)=>{
     const req=indexedDB.open(DB_NAME,DB_VERSION);
@@ -28,7 +27,7 @@ function all(n){return new Promise(r=>{const out=[];store(n).openCursor().onsucc
 function clearStore(n){return new Promise(r=>store(n,'readwrite').clear().onsuccess=()=>r())}
 function remove(n,id){return new Promise(r=>store(n,'readwrite').delete(id).onsuccess=()=>r())}
 
-/* ================= Utilidades ================= */
+
 const $=s=>document.querySelector(s);
 function fileToDataURL(file){
   return new Promise((resolve,reject)=>{
@@ -39,15 +38,14 @@ function fileToDataURL(file){
   });
 }
 
-/* ================= Datos semilla ================= */
+                        
 const SAMPLE_CLIENTS=[
   {nombre:'Carla Robles',ci:'7392012',genero:'Femenino',foto:''},
   {nombre:'Luis Pérez',ci:'5849230',genero:'Masculino',foto:''},
   {nombre:'Ana Gómez',ci:'6123498',genero:'Femenino',foto:''}
 ];
 const SAMPLE_PRODUCTS=[
-  // Puedes añadir productos tú mismo en la sección "Productos (admin)"
-  // o usar este set básico sin imágenes (sube las tuyas con el admin)
+ 
   {nombre:"J'adore",marca:"Dior",precio:950,img:''},
   {nombre:"Bleu de Chanel",marca:"Chanel",precio:1100,img:''},
   {nombre:"Acqua di Gio",marca:"Giorgio Armani",precio:990,img:''},
@@ -68,11 +66,10 @@ async function seed(){
   if((await all('orders')).length===0) for(const o of SAMPLE_ORDERS) await add('orders',o);
 }
 
-/* ================= Helpers ================= */
 async function getProductByName(name){ const prods=await all('products'); return prods.find(p=>p.nombre===name); }
 async function getClientByName(name){ const cl=await all('clients'); return cl.find(c=>c.nombre===name); }
 
-/* ================= Auth (demo local) ================= */
+
 function setSession(user){ localStorage.setItem('ps_current_user', JSON.stringify(user)); repaintAuth(); }
 function getSession(){ const raw=localStorage.getItem('ps_current_user'); return raw? JSON.parse(raw): null; }
 function clearSession(){ localStorage.removeItem('ps_current_user'); repaintAuth(); }
@@ -82,7 +79,7 @@ async function doRegister(){
   if(!name||!email||!pass) return alert('Completa nombre, email y contraseña');
   const users=await all('users');
   if(users.some(u=>u.email===email)) return alert('Ese email ya está registrado');
-  const id=await add('users',{name,email,pass}); // plano (demo)
+  const id=await add('users',{name,email,pass}); 
   closeModal('#modalRegister');
   setSession({id,name,email});
 }
@@ -105,8 +102,6 @@ function repaintAuth(){
     btnLogin.style.display='inline-block'; btnReg.style.display='inline-block'; btnOut.style.display='none';
   }
 }
-
-/* ================= Modales ================= */
 function openModal(sel){ const m=$(sel); if(m) m.setAttribute('aria-hidden','false'); }
 function closeModal(sel){ const m=$(sel); if(m) m.setAttribute('aria-hidden','true'); }
 document.addEventListener('click',(e)=>{
@@ -115,7 +110,6 @@ document.addEventListener('click',(e)=>{
   if(e.target.classList?.contains('modal')) e.target.setAttribute('aria-hidden','true');
 });
 
-/* ================= Render ================= */
 async function renderClientes(){
   const data=await all('clients');
   $('#countClientes').textContent=data.length;
@@ -172,8 +166,6 @@ async function renderReviews(){
   const data=await all('reviews');
   const r=$('#reviewsRow'); r.innerHTML='';
   for(const rv of data.slice(-12).reverse()){
-    // Foto = la del cliente correspondiente (si existe), si no, avatar por defecto
-    let avatar = DEFAULT_AVATAR;
     const c = await getClientByName(rv.nombre);
     if(c && c.foto) avatar = c.foto;
     const card=document.createElement('div');
@@ -217,7 +209,6 @@ async function renderDestacados(){
   });
 }
 
-/* ================= Selects ================= */
 async function fillProductoSelect(){
   const prods=await all('products');
   $('#oProducto').innerHTML='<option value="">Producto</option>'+prods.map(p=>`<option value="${p.nombre}">${p.nombre} — Bs. ${p.precio||0}</option>`).join('');
